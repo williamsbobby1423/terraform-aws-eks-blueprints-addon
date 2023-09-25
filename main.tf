@@ -1,5 +1,49 @@
 locals {
   namespace = try(coalesce(var.namespace, "default")) # Need to explicitly set default for use with IRSA
+
+  helm_release_name = try(coalesce(var.name, var.chart), "")
+  irsa_set          = [for irsa_name in var.set_irsa_names : { name = irsa_name, value = aws_iam_role.this[0].arn } if var.create && var.create_role]
+
+  values = length(var.values) > 0 ? yamldecode(join(",", var.values)) : {}
+
+  helm_release_config = {
+    name             = local.helm_release_name
+    description      = var.description
+    namespace        = local.namespace
+    create_namespace = var.create_namespace
+    chart            = var.chart
+    chart_version    = var.chart_version # conflicts with reserved keyword
+    repository       = var.repository
+    values           = local.values
+
+    timeout                    = var.timeout
+    repository_key_file        = var.repository_key_file
+    repository_cert_file       = var.repository_cert_file
+    repository_ca_file         = var.repository_ca_file
+    repository_username        = var.repository_username
+    repository_password        = var.repository_password
+    devel                      = var.devel
+    verify                     = var.verify
+    keyring                    = var.keyring
+    disable_webhooks           = var.disable_webhooks
+    reuse_values               = var.reuse_values
+    reset_values               = var.reset_values
+    force_update               = var.force_update
+    recreate_pods              = var.recreate_pods
+    cleanup_on_fail            = var.cleanup_on_fail
+    max_history                = var.max_history
+    atomic                     = var.atomic
+    skip_crds                  = var.skip_crds
+    render_subchart_notes      = var.render_subchart_notes
+    disable_openapi_validation = var.disable_openapi_validation
+    wait                       = var.wait
+    wait_for_jobs              = var.wait_for_jobs
+    dependency_update          = var.dependency_update
+    replace                    = var.replace
+    lint                       = var.lint
+    set                        = concat(var.set, local.irsa_set)
+    set_sensitive              = var.set_sensitive
+  }
 }
 
 ################################################################################

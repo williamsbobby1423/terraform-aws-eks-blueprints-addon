@@ -37,6 +37,11 @@ output "values" {
   value       = try(helm_release.this[0].metadata[0].values, [])
 }
 
+output "helm_release_config" {
+  description = "The helm configuration passed to this addon"
+  value       = local.helm_release_config
+}
+
 ################################################################################
 # IAM Role for Service Account(s) (IRSA)
 ################################################################################
